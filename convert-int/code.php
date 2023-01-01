@@ -19,19 +19,21 @@ function converInt($number)
 
     if ($number >= 3600) :
         $jam = floor($number / 3600);
-        $res .= $jam . " jam ";
+        $res .= $jam . " jam "; // Not showing the Hours, if it zero.
     endif;
     $remainder = $number % 3600;
 
     $menit = (($remainder / 60) > 0) ? floor($remainder / 60) : 0;
     $detik = $remainder % 60;
 
+    // If the minutes or second are 0, do not return them.
     $res .= (($menit > 0) ? $menit . " menit " : '') . (($detik > 0) ? $detik . " detik " : '');
 
     return $res;
 };
 
 /*
-Contoh penggunaan fungsi diatas
+Example of using the function.
 */
-print_r(converInt(600));
+$number = 10000;
+print_r(converInt($number));
