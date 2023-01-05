@@ -23,8 +23,7 @@ class NilaiController extends Controller
             ->join('mata_kuliah', 'data_nilai.matkul_id', '=', 'mata_kuliah.id')
             ->join('dosen', 'data_nilai.dosen_id', '=', 'dosen.id');
 
-
-        return response()->json($nilai->get([
+        $data = $nilai->get([
             'data_nilai.nim',
             'mahasiswa.nama as nama',
             DB::raw("YEAR(CURRENT_DATE) - YEAR(mahasiswa.tl) - (DATE_FORMAT(CURRENT_DATE, '%m%d')<DATE_FORMAT(mahasiswa.tl, '%m%d')) as umur"),
@@ -33,7 +32,13 @@ class NilaiController extends Controller
             'mata_kuliah.judul as matkul',
             'jurusan.nama as jurusan',
             'data_nilai.keterangan'
-        ]));
+        ]);
+
+        return response()->json([
+            'status' => 200,
+            'title' => 'success',
+            'data' => $data
+        ]);
     }
 
     public function addNilai(Request $request)
@@ -70,7 +75,9 @@ class NilaiController extends Controller
         Nilai::create($request->all());
 
         return response()->json([
-            'message' => 'Sukses menambahkan!'
+            'status' => '200',
+            'title' => 'success',
+            'description' => 'Sukses menambahkan!'
         ], 201);
     }
 
@@ -89,7 +96,9 @@ class NilaiController extends Controller
 
         return response()->json([
             'data' => $nilai,
-            'message' => 'Sukses diubah!'
+            'status' => '200',
+            'title' => 'success',
+            'description' => 'Sukses diubah!'
         ], 200);
     }
 
@@ -115,7 +124,13 @@ class NilaiController extends Controller
         $nilai = Nilai::select(db::raw("data_nilai.nim, avg(data_nilai.nilai) as rerata, mahasiswa.nama"))
             ->join('mahasiswa', 'mahasiswa.nim', '=', 'data_nilai.nim')
             ->groupBy('nim');
-        return response()->json($nilai->get());
+        return response()->json(
+            [
+                'status' => '200',
+                'title' => 'success',
+                'data' => $nilai->get()
+            ]
+        );
     }
 
     public function uploadNilai(Request $request)
@@ -170,25 +185,21 @@ class NilaiController extends Controller
                     'keterangan' => $importData[4]
                 ];
                 try {
-                    try {
-                        if (!(Nilai::where('nim', $data['nim'])->where('matkul_id', $data['matkul_id'])->first())) :
-                            Nilai::create($data);
-                        else :
-                            return response()->json([
-                                'message' => "Data " . $data['nim'] . " mata kuliah " . $data['matkul_id'] . " sudah ada!"
-                            ], 500);
-                        endif;
-                    } catch (\Throwable $e) {
-                        DB::rollBack();
-                    }
+                    if (!(Nilai::where('nim', $data['nim'])->where('matkul_id', $data['matkul_id'])->first())) :
+                        Nilai::create($data);
+                    else :
+                        throw new \InvalidArgumentException("Data suda ada!");
+                    endif;
                 } catch (\Exception $e) {
                     //throw $th;
                     throw new Exception('Data sudah ada!');
                 }
             }
             return response()->json([
-                'message' => "$j data sudah ditambahkan!"
-            ]);
+                'status' => 201,
+                'title' => 'success',
+                'description' => "$j data sudah ditambahkan!"
+            ], 201);
         } else {
             //no file was uploaded
             throw new \Exception('No file was uploaded', Response::HTTP_BAD_REQUEST);
@@ -218,6 +229,10 @@ class NilaiController extends Controller
             ->join('jurusan', 'jurusan.id', '=', 'mahasiswa.jurusan')
             ->groupBy('jurusan.id');
 
-        return response()->json($nilai->get());
+        return response()->json([
+            'data' => $nilai->get(),
+            'status' => '200',
+            'title' => 'success'
+        ]);
     }
 }
