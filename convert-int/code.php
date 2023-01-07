@@ -12,22 +12,21 @@ constraint of $number :
 
 function converInt($number)
 {
-    $jam = 0;
-    $menit = 0;
-    $detik = 0;
+    $jam = floor($number / 3600);
+    $menit = floor(($number % 3600) / 60);
+    $detik = $number % 60;
+
     $res = '';
 
-    if ($number >= 3600) :
-        $jam = floor($number / 3600);
-        $res .= $jam . " jam "; // Not showing the Hours, if it zero.
+    if ($jam > 0) :
+        $res .= "$jam jam ";
     endif;
-    $remainder = $number % 3600;
-
-    $menit = (($remainder / 60) > 0) ? floor($remainder / 60) : 0;
-    $detik = $remainder % 60;
-
-    // If the minutes or second are 0, do not return them.
-    $res .= (($menit > 0) ? $menit . " menit " : '') . (($detik > 0) ? $detik . " detik " : '');
+    if ($menit > 0) :
+        $res .= "$menit menit ";
+    endif;
+    if ($detik > 0) :
+        $res .= "$detik detik ";
+    endif;
 
     return $res;
 };
@@ -36,4 +35,4 @@ function converInt($number)
 Example of using the function.
 */
 $number = 10000;
-print_r(converInt($number));
+echo converInt($number);
